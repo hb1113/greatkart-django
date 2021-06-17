@@ -30,7 +30,14 @@
 			<div class="aside"><img src="{{ item.product.image.url }}" class="img-sm"></div>
 			<figcaption class="info">
 				<a href="{{ item.product.get_url }}" class="title text-dark">{{ item.product.product_name }}</a>
-				<p class="text-muted small">{{ item.variation.category }}<br> Brand: Canon</p>
+				<p class="text-muted small">
+					{% if item.variations.all %}
+						{% for i in item.variations.all %}
+							{{ i.variation_category | capfirst }} : {{ i.variation_value }} <br>
+							{{ i.variation }}
+						{% endfor %}
+					{% endif %}
+				</p>
 			</figcaption>
 		</figure>
 	</td>
@@ -39,11 +46,17 @@
 					<div class="col">
 						<div class="input-group input-spinner">
 							<div class="input-group-prepend">
-							<a href="{% url 'decrease-cart' item.product.id %}" class="btn btn-light" type="button" id="button-plus"> <i class="fa fa-minus"></i> </a>
+								<a href="{% url 'decrease-cart' item.product.id item.id %}" class="btn btn-light" type="submit" id="button-minus"> <i class="fa fa-minus"></i> </a>
 							</div>
 							<input type="text" class="form-control"  value="{{ item.quantity }}">
 							<div class="input-group-append">
-							<a href="{% url 'add-cart' item.product.id %}" class="btn btn-light" type="button" id="button-minus"> <i class="fa fa-plus"></i> </a>
+								<form action="{% url 'add-cart' item.product.id %}" method="POST">
+									{% csrf_token %}
+									{% for i in item.variations.all %}
+										<input type="hidden" name="{{ i.variation_category }}" value="{{ i.variation_value }}">
+									{% endfor %}
+									<button class="btn btn-light" type="submit" id="button-plus"> <i class="fa fa-plus"></i> </button>
+								</form>
 							</div>
 						</div> <!-- input-group.// -->
 					</div> <!-- col.// -->
@@ -55,7 +68,7 @@
 		</div> <!-- price-wrap .// -->
 	</td>
 	<td class="text-right">
-	<a href="{% url 'remove-cart' item.product.id %}" class="btn btn-danger"> Remove</a>
+	<a href="{% url 'remove-cart' item.product.id item.id %}" onclick="return confirm('Are you sure?')" class="btn btn-danger"> Remove</a>
 	</td>
 </tr>
 {% endfor %}
